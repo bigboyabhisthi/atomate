@@ -429,8 +429,8 @@ def wf_gibbs_free_energy(structure, c=None):
     # chaining
     wf.append_wf(wf_gibbs, wf.leaf_fw_ids)
 
-    wf = add_modify_incar(wf, modify_incar_params={"incar_update": {"ENCUT": 600,
-                                                                    "EDIFF": 1e-5,
+    wf = add_modify_incar(wf, modify_incar_params={"incar_update": {"ENCUT": 520,
+                                                                    "EDIFF": 1e-4,
                                                                     "LAECHG": False}})
 
     wf = add_common_powerups(wf, c)
