@@ -402,8 +402,15 @@ def wf_gibbs_free_energy(structure, c=None):
 
     # static input set for the transmute firework
     uis_static = {
+        "ADDGRID":True,
         "ISIF": 2,
         "ISTART": 1,
+        "ENCUT": 720,
+        "EDIFF": 1e-5,
+        "KPAR": 4,
+        "LAECHG": False,
+        "LREAL": False,
+        "NSW": 1
     }
 
     lepsilon = False
@@ -429,9 +436,9 @@ def wf_gibbs_free_energy(structure, c=None):
     # chaining
     wf.append_wf(wf_gibbs, wf.leaf_fw_ids)
 
-    wf = add_modify_incar(wf, modify_incar_params={"incar_update": {"ENCUT": 520,
-                                                                    "EDIFF": 1e-4,
-                                                                    "LAECHG": False}})
+    wf = add_modify_incar(wf, modify_incar_params={"incar_update": {"ENCUT": 720,
+                                                                    "EDIFF": 1e-6
+                                                                    }})
 
     wf = add_common_powerups(wf, c)
 
