@@ -1,5 +1,6 @@
 # coding: utf-8
 
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 """
 This module defines the gibbs free energy workflow.
@@ -22,7 +23,7 @@ __email__ = 'kmathew@lbl.gov'
 logger = get_logger(__name__)
 
 
-def get_wf_gibbs_free_energy(structure, deformations, vasp_input_set=None, vasp_cmd="vasp",
+def get_wf_synthesis(structure, deformations, vasp_input_set=None, vasp_cmd="vasp",
                              db_file=None, user_kpoints_settings=None, t_step=10, t_min=0,
                              t_max=1000, mesh=(20, 20, 20), eos="vinet", qha_type="debye_model",
                              pressure=0.0, poisson=0.25, anharmonic_contribution=False,
@@ -68,7 +69,7 @@ def get_wf_gibbs_free_energy(structure, deformations, vasp_input_set=None, vasp_
     if vis_static is None:
         lepsilon = False
         if qha_type not in ["debye_model"]:
-            lepsilon = False # CHANGED
+            lepsilon = True
             try:
                 from phonopy import Phonopy
             except ImportError:

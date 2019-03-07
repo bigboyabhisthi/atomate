@@ -415,7 +415,7 @@ def wf_gibbs_free_energy(structure, c=None):
 
     lepsilon = False
     if qha_type not in ["debye_model"]:
-        lepsilon = True
+        lepsilon = False # changed!
         try:
             from phonopy import Phonopy
         except ImportError:
@@ -660,5 +660,97 @@ def wf_nudged_elastic_band(structures, parent, c=None):
     else:  # len(structures) >= 3
         wf = get_wf_neb_from_images(parent=parent, images=structures,
                                     additional_spec=spec, **kwargs)
+
+    return wf
+
+def wf_synthesis(structure, c=None):
+    """
+    Gibbs free energy workflow from the given structure and config dict.
+
+    Args:
+        structure (Structure): input structure
+        c (dict): workflow config dict
+
+    Returns:
+        Workflow
+    """
+    c = c or {}
+
+    vasp_cmd = c.get("VASP_CMD", VASP_CMD)
+    db_file = c.get("DB_FILE", DB_FILE)
+    eos = c.get("EOS", "vinet")
+    qha_type = c.get("QHA_TYPE", "debye_model")
+    # min and max temp in K, default setting is to compute the properties at 300K only
+    t_min = c.get("T_MIN", 300.0)
+    t_max = c.get("T_MAX", 300.0)
+    t_step = c.get("T_STEP", 100.0)
+    pressure = c.get("PRESSURE", 0.0)
+    poisson = c.get("POISSON", 0.25)
+    anharmonic_contribution = c.get("ANHARMONIC_CONTRIBUTION", False)
+    metadata = c.get("METADATA", None)
+
+    # 21 deformed structures: from -10% to +10%
+    defos = [(np.identity(3) * (1 + x)).tolist() for x in np.linspace(-0.1, 0.1, 21)]
+    deformations = c.get("DEFORMATIONS", defos)
+    user_kpoints_settings = {"grid_density": 7000}
+
+    tag = "gibbs group: >>{}<<".format(str(uuid4()))
+
+    # input set for structure optimization
+    vis_relax = MPRelaxSet(structure, force_gamma=True)
+    v = vis_relax.as_dict()
+    v.update({"user_kpoints_settings": user_kpoints_settings})
+    vis_relax = vis_relax.__class__.from_dict(v)
+
+    # optimization only workflow
+    wf = get_wf(structure, "optimize_only.yaml",
+                params=[{"vasp_cmd": vasp_cmd,  "db_file": db_file,
+                         "name": "{} structure optimization".format(tag)}],
+                vis=vis_relax)
+
+    # static input set for the transmute firework
+    uis_static = {
+        "ADDGRID":True,
+        "ISIF": 2,
+        "ISTART": 1,
+        "ENCUT": 720,
+        "EDIFF": 1e-5,
+        "KPAR": 4,
+        "LAECHG": False,
+        "LREAL": False,
+        "NSW": 1
+    }
+
+    lepsilon = False
+    if qha_type not in ["debye_model"]:
+        lepsilon = False # Changed
+        try:
+            from phonopy import Phonopy
+        except ImportError:
+            raise RuntimeError("'phonopy' package is NOT installed but is required for the final "
+                               "analysis step; you can alternatively switch to the qha_type to "
+                               "'debye_model' which does not require 'phonopy'.")
+    vis_static = MPStaticSet(structure, force_gamma=True, lepsilon=lepsilon,
+                             user_kpoints_settings=user_kpoints_settings,
+                             user_incar_settings=uis_static)
+    # get gibbs workflow and chain it to the optimization workflow
+    wf_gibbs = get_wf_gibbs_free_energy(structure, user_kpoints_settings=user_kpoints_settings,
+                                        deformations=deformations, vasp_cmd=vasp_cmd, db_file=db_file,
+                                        eos=eos, qha_type=qha_type, pressure=pressure, poisson=poisson,
+                                        t_min=t_min, t_max=t_max, t_step=t_step, metadata=metadata,
+                                        anharmonic_contribution=anharmonic_contribution,
+                                        tag=tag, vasp_input_set=vis_static)
+
+    # chaining
+    wf.append_wf(wf_gibbs, wf.leaf_fw_ids)
+
+    wf = add_modify_incar(wf, modify_incar_params={"incar_update": {"ENCUT": 720,
+                                                                    "EDIFF": 1e-6
+                                                                    }})
+
+    wf = add_common_powerups(wf, c)
+
+    if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
+        wf = add_wf_metadata(wf, structure)
 
     return wf
