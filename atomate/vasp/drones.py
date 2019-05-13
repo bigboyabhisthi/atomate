@@ -105,6 +105,10 @@ class VaspDrone(AbstractDrone):
             parse_bader (bool): Run and parse Bader charge data. Defaults to True if Bader is present
             parse_chgcar (bool): Run and parse CHGCAR file
             parse_aeccar (bool): Run and parse AECCAR0 and AECCAR2 files
+            defect_wf_parsing (Site): A Site object representing the position of a point defect site.
+                If provided, the drone stores additional
+                useful information for consideration of defect localization
+                Defaults to None (no defect related parsing occurs)
         """
         self.parse_dos = parse_dos
         self.additional_fields = additional_fields or {}
@@ -208,6 +212,18 @@ class VaspDrone(AbstractDrone):
             except:
                 logger.error("Bad run stats for {}.".format(fullpath))
             d["run_stats"] = run_stats
+
+            # store defect localization/band filling information
+            if self.defect_wf_parsing:
+                for i, d_calc in enumerate(d["calcs_reversed"]):
+                    if d_calc.get("output"):
+                        filename = list(vasprun_files.values())[i]
+                        vasprun_file = os.path.join(dir_name, filename)
+                        vrun = Vasprun(vasprun_file)
+                        eigenvalues = vrun.eigenvalues.copy()
+                        kpoint_weights = vrun.actual_kpoints_weights
+                        vr_eigenvalue_dict = {'eigenvalues': eigenvalues, 'kpoint_weights': kpoint_weights}
+                        d_calc["output"].update({"vr_eigenvalue_dict": vr_eigenvalue_dict})
 
             # reverse the calculations data order so newest calc is first
             d["calcs_reversed"].reverse()

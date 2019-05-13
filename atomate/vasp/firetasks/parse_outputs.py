@@ -75,7 +75,7 @@ class VaspToDb(FiretaskBase):
     """
     optional_params = ["calc_dir", "calc_loc", "parse_dos", "bandstructure_mode",
                        "additional_fields", "db_file", "fw_spec_field", "defuse_unsuccessful",
-                       "task_fields_to_push", "parse_chgcar", "parse_aeccar"]
+                       "task_fields_to_push", "parse_chgcar", "parse_aeccar", "defect_wf_parsing"]
 
     def run_task(self, fw_spec):
         # get the directory that contains the VASP dir to parse
