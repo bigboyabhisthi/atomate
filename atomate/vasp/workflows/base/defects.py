@@ -246,7 +246,8 @@ def run_defect_resubmissions( dpd, name="chg_defect_wf", consider_charges=True,
         for defname, charge_list in rec_dict.items():
             defect_template = dpd.finished_charges[ defname][0].defect.copy()
 
-            #TODO -> consider next sized supercell size..
+            #TODO -> make a routine for finding next sized supercell size..
+            """(a) Get current supercell size, (b) for loop to next biggest supercell"""
             # supercell_size = ?
 
             for charge in charge_list:
