@@ -176,7 +176,7 @@ def get_wf_chg_defects(structure, name="chg_defect_wf", user_incar_settings={},
 
 
 def run_defect_resubmissions( dpd, name="chg_defect_wf", consider_charges=True,
-                              consider_supercells=False, user_incar_settings={},
+                              user_incar_settings={},
                               vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<",
                               n_max=400, hybrid_run_for_gap_corr=False,
                               user_kpoints_settings={}):
@@ -186,7 +186,7 @@ def run_defect_resubmissions( dpd, name="chg_defect_wf", consider_charges=True,
 
     It can do this in two ways:
         (a) Extra Charge submissions: run any charges suggested for followup by DefectPhaseDiagram
-        (b) Larger supercell submissions: run larger supercells for certain charges as suggested by DefectPhaseDiagram
+        TODO: (b) Larger supercell submissions: run larger supercells for certain charges as suggested by DefectPhaseDiagram
 
     Args:
         dpd (DefectPhaseDiagram): phase diagram to consider for analysis of resubmission jobs
