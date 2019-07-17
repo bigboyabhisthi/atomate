@@ -386,6 +386,7 @@ class DFPTFW(Firework):
     def __init__(self, structure=None, prev_calc_dir=None, name="static dielectric", vasp_cmd=VASP_CMD,
                  copy_vasp_outputs=True, lepsilon=True,
                  db_file=DB_FILE, parents=None, user_incar_settings=None,
+                 potcar_functional=None,
                  pass_nm_results=False, **kwargs):
         """
          Static DFPT calculation Firework
@@ -417,11 +418,13 @@ class DFPTFW(Firework):
         if prev_calc_dir:
             t.append(CopyVaspOutputs(calc_dir=prev_calc_dir, contcar_to_poscar=True))
             t.append(WriteVaspStaticFromPrev(lepsilon=lepsilon, other_params={
-                'user_incar_settings': user_incar_settings, 'force_gamma': True}))
+                'user_incar_settings': user_incar_settings, 'force_gamma': True,
+                'potcar_functional': potcar_functional}))
         elif parents and copy_vasp_outputs:
             t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
             t.append(WriteVaspStaticFromPrev(lepsilon=lepsilon, other_params={
-                'user_incar_settings': user_incar_settings, 'force_gamma': True}))
+                'user_incar_settings': user_incar_settings, 'force_gamma': True,
+                'potcar_functional':potcar_functional}))
         elif structure:
             vasp_input_set = MPStaticSet(structure, lepsilon=lepsilon, force_gamma=True,
                                          user_incar_settings=user_incar_settings)

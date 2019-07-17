@@ -26,12 +26,26 @@ from atomate.vasp.fireworks.defects import DefectAnalysisFW
 logger = get_logger(__name__)
 
 
-def get_wf_chg_defects(structure, mpid=None, name="chg_defect_wf", user_incar_settings={},
-                        vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<",
-                        conventional=True, diel_flag=True, n_max=128, job_type='normal',
-                        vacancies=[], substitutions={}, interstitials={},
-                        initial_charges={}, rerelax_flag=False, hybrid_run_for_gap_corr=True,
-                        run_analysis=False, user_kpoints_settings={}):
+def get_wf_chg_defects(
+    structure,
+    mpid=None,
+    name="chg_defect_wf",
+    user_incar_settings={},
+    vasp_cmd=">>vasp_cmd<<",
+    db_file=">>db_file<<",
+    conventional=True,
+    diel_flag=True,
+    n_max=128,
+    job_type="normal",
+    vacancies=[],
+    substitutions={},
+    interstitials={},
+    initial_charges={},
+    rerelax_flag=False,
+    hybrid_run_for_gap_corr=True,
+    run_analysis=False,
+    user_kpoints_settings={},
+):
     """
     Returns a charged defect workflow
 
@@ -134,89 +148,150 @@ def get_wf_chg_defects(structure, mpid=None, name="chg_defect_wf", user_incar_se
     """
     fws, parents = [], []
 
-    #force optimization and dielectric calculations with primitive structure for expediency
+    # force optimization and dielectric calculations with primitive structure for expediency
     prim_structure = SpacegroupAnalyzer(structure).find_primitive()
 
     if rerelax_flag:
-        incar_settings = {"ISIF": 3, "ISPIN":2, "ISYM":2, "LAECHG":False, 'LVHAR': False}
-        if job_type == 'metagga_opt_run':
-            vis = MVLScanRelaxSet( prim_structure, user_incar_settings=incar_settings,
-                              user_kpoints_settings={"reciprocal_density": 100})
+        incar_settings = {
+            "ISIF": 3,
+            "ISPIN": 2,
+            "ISYM": 2,
+            "LAECHG": False,
+            "LVHAR": False,
+        }
+        if job_type == "metagga_opt_run":
+            vis = MVLScanRelaxSet(
+                prim_structure,
+                user_incar_settings=incar_settings,
+                user_kpoints_settings={"reciprocal_density": 100},
+            )
         else:
-            kpt_density = 100 if job_type == 'normal' else 50
-            vis = MPRelaxSet( prim_structure,
-                              user_incar_settings=incar_settings,
-                              user_kpoints_settings={"reciprocal_density": kpt_density})
+            kpt_density = 100 if job_type == "normal" else 50
+            vis = MPRelaxSet(
+                prim_structure,
+                user_incar_settings=incar_settings,
+                user_kpoints_settings={"reciprocal_density": kpt_density},
+            )
 
-        rerelax_fw = OptimizeFW( prim_structure,
-                                 name=job_type+"structure optimization",
-                                 vasp_input_set=vis,
-                                 vasp_cmd=vasp_cmd, db_file=db_file,
-                                 job_type=job_type,
-                                 auto_npar=">>auto_npar<<",
-                                 parents=None)
+        rerelax_fw = OptimizeFW(
+            prim_structure,
+            name=job_type + "structure optimization",
+            vasp_input_set=vis,
+            vasp_cmd=vasp_cmd,
+            db_file=db_file,
+            job_type=job_type,
+            auto_npar=">>auto_npar<<",
+            parents=None,
+        )
         fws.append(rerelax_fw)
         parents = [rerelax_fw]
 
-        if hybrid_run_for_gap_corr: #only run HSEBSFW hybrid workflow here if re-relaxed since it requires a copy-over optimized structure
-            if job_type == 'hse':
-                raise ValueError("Running Hybrid workflow for bandgap does not make "
-                                 "sense since you have opted to run defects with hybrid.")
-            hse_fw = HSEBSFW(structure=prim_structure, parents=parents, name="hse-BS", vasp_cmd=vasp_cmd, db_file=db_file)
-            fws.append( hse_fw)
+        if (
+            hybrid_run_for_gap_corr
+        ):  # only run HSEBSFW hybrid workflow here if re-relaxed since it requires a copy-over optimized structure
+            if job_type == "hse":
+                raise ValueError(
+                    "Running Hybrid workflow for bandgap does not make "
+                    "sense since you have opted to run defects with hybrid."
+                )
+            hse_fw = HSEBSFW(
+                structure=prim_structure,
+                parents=parents,
+                name="hse-BS",
+                vasp_cmd=vasp_cmd,
+                db_file=db_file,
+            )
+            fws.append(hse_fw)
 
-    elif hybrid_run_for_gap_corr: #if not re-relaxing structure but want hybrid then need to run a static primitive struct calc initial
-        if job_type == 'hse':
-            raise ValueError("Running Hybrid workflow for bandgap does not make "
-                             "sense since you have opted to run defects with hybrid.")
-        stat_gap_fw = StaticFW(structure=prim_structure, name="{} gap gga initialize".format(structure.composition.reduced_formula),
-                                vasp_cmd=vasp_cmd, db_file=db_file)
-        fws.append( stat_gap_fw)
-        hse_fw = HSEBSFW(structure=prim_structure, parents=stat_gap_fw, name="hse-BS", vasp_cmd=vasp_cmd, db_file=db_file)
-        fws.append( hse_fw)
+    elif (
+        hybrid_run_for_gap_corr
+    ):  # if not re-relaxing structure but want hybrid then need to run a static primitive struct calc initial
+        if job_type == "hse":
+            raise ValueError(
+                "Running Hybrid workflow for bandgap does not make "
+                "sense since you have opted to run defects with hybrid."
+            )
+        stat_gap_fw = StaticFW(
+            structure=prim_structure,
+            name="{} gap gga initialize".format(structure.composition.reduced_formula),
+            vasp_cmd=vasp_cmd,
+            db_file=db_file,
+        )
+        fws.append(stat_gap_fw)
+        hse_fw = HSEBSFW(
+            structure=prim_structure,
+            parents=stat_gap_fw,
+            name="hse-BS",
+            vasp_cmd=vasp_cmd,
+            db_file=db_file,
+        )
+        fws.append(hse_fw)
 
-    if diel_flag: #note dielectric DFPT run is only done with GGA
+    if diel_flag:  # note dielectric DFPT run is only done with GGA
         user_incar_settings = {}
         if parents:
             copy_out = True
-            #need to revert incar settings which were set for scan and hybrid relaxation schemes
-            if job_type == 'hse':
-                user_incar_settings.update( {'HFSCREEN': None, 'LHFCALC': False,
-                                             "PRECFOCK": "Normal"})
-            elif job_type == 'metagga_opt_run':
-                user_incar_settings.update( {'ADDGRID': False, 'ISTART': 0,
-                                             'LASPH': False, 'METAGGA': None})
+            # need to revert incar settings which were set for scan and hybrid relaxation schemes
+            if job_type == "hse":
+                user_incar_settings.update(
+                    {"HFSCREEN": None, "LHFCALC": False, "PRECFOCK": "Normal"}
+                )
+            elif job_type == "metagga_opt_run":
+                user_incar_settings.update(
+                    {"ADDGRID": False, "ISTART": 0, "LASPH": False, "METAGGA": None}
+                )
         else:
             copy_out = False
 
-        diel_fw = DFPTFW(structure=prim_structure, name='ionic dielectric', vasp_cmd=vasp_cmd, copy_vasp_outputs=copy_out,
-                         db_file=db_file, parents=parents, user_incar_settings=user_incar_settings)
-        fws.append( diel_fw)
+        diel_fw = DFPTFW(
+            structure=prim_structure,
+            name="ionic dielectric",
+            vasp_cmd=vasp_cmd,
+            copy_vasp_outputs=copy_out,
+            db_file=db_file,
+            potcar_functional="PBE_52",
+            parents=parents,
+            user_incar_settings=user_incar_settings,
+        )
+        fws.append(diel_fw)
 
     t = []
     if parents:
-        t.append(CopyVaspOutputs(calc_loc= True ))
+        t.append(CopyVaspOutputs(calc_loc=True))
 
-    t.append(DefectSetupFiretask(structure=prim_structure, cellmax=n_max, conventional=conventional,
-                                 vasp_cmd=vasp_cmd, db_file=db_file, user_incar_settings=user_incar_settings,
-                                 user_kpoints_settings=user_kpoints_settings,
-                                 job_type=job_type,
-                                 vacancies=vacancies, substitutions=substitutions,
-                                 interstitials=interstitials, initial_charges=initial_charges))
+    t.append(
+        DefectSetupFiretask(
+            structure=prim_structure,
+            cellmax=n_max,
+            conventional=conventional,
+            vasp_cmd=vasp_cmd,
+            db_file=db_file,
+            user_incar_settings=user_incar_settings,
+            user_kpoints_settings=user_kpoints_settings,
+            job_type=job_type,
+            vacancies=vacancies,
+            substitutions=substitutions,
+            interstitials=interstitials,
+            initial_charges=initial_charges,
+        )
+    )
 
-    fw_name = "{} {} Defect Supercell Setup".format(structure.composition.reduced_formula, job_type)
-    setup_fw = Firework(t,parents = parents, name=fw_name)
+    fw_name = "{} {} Defect Supercell Setup".format(
+        structure.composition.reduced_formula, job_type
+    )
+    setup_fw = Firework(t, parents=parents, name=fw_name)
     fws.append(setup_fw)
 
     if run_analysis:
         analysis_parents = [setup_fw]
         if diel_flag:
             analysis_parents.append(diel_fw)
-        analysis_fw = DefectAnalysisFW(prim_structure, mpid=mpid, parents=analysis_parents)
+        analysis_fw = DefectAnalysisFW(
+            prim_structure, mpid=mpid, parents=analysis_parents
+        )
         fws.append(analysis_fw)
 
     wfname = "{}:{}_{}".format(structure.composition.reduced_formula, job_type, name)
     final_wf = Workflow(fws, name=wfname)
 
     return final_wf
-
