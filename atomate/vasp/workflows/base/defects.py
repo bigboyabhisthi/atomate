@@ -71,7 +71,6 @@ def get_wf_chg_defects(
         diel_flag (bool): flag to also run dielectric calculations.
             (required for charge corrections to be run) defaults to True.
         n_max (int): maximum supercell size to consider for supercells
-
         job_type (str): type of defect calculation that user desires to run
             default is 'normal' which runs a GGA defect calculation
             additional options are:
@@ -81,7 +80,6 @@ def get_wf_chg_defects(
                 'hse' which runs a relaxation step with GGA followed by a relaxation with HSE
                     NOTE: for these latter two we highly recommend that rerelax is set to True
                         so the bulk_structure's lattice is optimized before running defects
-
         vacancies (list):
             If list is totally empty, all vacancies are considered (default).
             If only specific vacancies are desired then add desired Element symbol to the list
@@ -89,7 +87,6 @@ def get_wf_chg_defects(
 
             if NO vacancies are desired, then just add an empty list to the list
                 ex. [ [] ]  yields no vacancies
-
         substitutions (dict):
             If dict is totally empty, all intrinsic antisites are considered (default).
             If only specific antisites/substituions are desired then add vacant site type as key, with list of
@@ -99,8 +96,6 @@ def get_wf_chg_defects(
 
             if NO antisites or substitutions are desired, then just add an empty dict
                 ex. {'None':{}}  yields no antisites or subs
-
-
         interstitials (list):
             If list is totally empty, NO interstitial defects are considered (default).
             Option 1 for generation: If one wants to use Pymatgen to predict interstitial
@@ -111,8 +106,6 @@ def get_wf_chg_defects(
             Option 2 for generation: If user wants to add their own interstitial sites for consideration
                     the list of pairs of [symbol, Interstitial object] can be provided, where the
                     Interstitial pymatgen.analysis.defects.core object is used to describe the defect of interest
-
-
         initial_charges (dict):
             says how to specify initial charges for each defect.
             An empty dict (DEFAULT) is to do a fairly restrictive charge generation method:
@@ -128,7 +121,6 @@ def get_wf_chg_defects(
                                    'interstitials': {}}
                 in the GaAs structure this makes vacancy charges in states -3,-2,-1,0; Ga_As antisites in the q=0 state,
                 and all other defects will have charges generated in the restrictive automated format stated for DEFAULT
-
         rerelax_flag (bool):
             Flag to re-relax the input structure for minimizing forces 
             (does volume relaxation of small primitive cell) 
@@ -159,6 +151,8 @@ def get_wf_chg_defects(
             "LAECHG": False,
             "LVHAR": False,
         }
+        incar_settings.update(user_incar_settings)
+
         if job_type == "metagga_opt_run":
             vis = MVLScanRelaxSet(
                 prim_structure,
@@ -228,20 +222,22 @@ def get_wf_chg_defects(
         fws.append(hse_fw)
 
     if diel_flag:  # note dielectric DFPT run is only done with GGA
-        user_incar_settings = {}
+        incar_settings = {}
         if parents:
             copy_out = True
             # need to revert incar settings which were set for scan and hybrid relaxation schemes
             if job_type == "hse":
-                user_incar_settings.update(
+                incar_settings.update(
                     {"HFSCREEN": None, "LHFCALC": False, "PRECFOCK": "Normal"}
                 )
             elif job_type == "metagga_opt_run":
-                user_incar_settings.update(
+                incar_settings.update(
                     {"ADDGRID": False, "ISTART": 0, "LASPH": False, "METAGGA": None}
                 )
         else:
             copy_out = False
+
+        incar_settings.update(user_incar_settings)
 
         diel_fw = DFPTFW(
             structure=prim_structure,
@@ -251,7 +247,7 @@ def get_wf_chg_defects(
             db_file=db_file,
             potcar_functional="PBE_52",
             parents=parents,
-            user_incar_settings=user_incar_settings,
+            user_incar_settings=incar_settings,
         )
         fws.append(diel_fw)
 
@@ -266,7 +262,7 @@ def get_wf_chg_defects(
             conventional=conventional,
             vasp_cmd=vasp_cmd,
             db_file=db_file,
-            user_incar_settings=user_incar_settings,
+            user_incar_settings=incar_settings,
             user_kpoints_settings=user_kpoints_settings,
             job_type=job_type,
             vacancies=vacancies,
