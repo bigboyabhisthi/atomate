@@ -562,7 +562,8 @@ class TransmuterFW(Firework):
     def __init__(self, structure, transformations, transformation_params=None,
                  vasp_input_set=None, prev_calc_dir=None,
                  name="structure transmuter", vasp_cmd=VASP_CMD,
-                 copy_vasp_outputs=True, db_file=DB_FILE,
+                 copy_vasp_outputs=True, db_file=DB_FILE,job_type="normal",
+                 bandstructure_mode=None, defect_wf_parsing=None,
                  parents=None, override_default_vasp_params=None, **kwargs):
 
         """

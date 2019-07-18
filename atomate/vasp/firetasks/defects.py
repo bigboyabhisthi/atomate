@@ -203,6 +203,7 @@ class DefectSetupFiretask(FiretaskBase):
             bulk_incar_settings['ALGO'] = "All"
             kpoints_settings = user_kpoints_settings if user_kpoints_settings else {"reciprocal_density": 100}
             vis = MVLScanRelaxSet( bulk_supercell,
+                                   use_hubbard=True,
                                    user_incar_settings=bulk_incar_settings,
                                    user_kpoints_settings=kpoints_settings)
         else:
@@ -394,6 +395,7 @@ class DefectSetupFiretask(FiretaskBase):
                     stdrd_defect_incar_settings['ALGO'] = "All"
                     kpoints_settings = user_kpoints_settings if user_kpoints_settings else {"reciprocal_density": 100}
                     defect_input_set = MVLScanRelaxSet( chgdstruct,
+                                                        use_hubbard=True,
                                                         user_incar_settings=stdrd_defect_incar_settings.copy(),
                                                         user_kpoints_settings=kpoints_settings,
                                                         use_structure_charge=True)

@@ -156,6 +156,7 @@ def get_wf_chg_defects(
         if job_type == "metagga_opt_run":
             vis = MVLScanRelaxSet(
                 prim_structure,
+                use_hubbard=True,
                 user_incar_settings=incar_settings,
                 user_kpoints_settings={"reciprocal_density": 100},
             )
@@ -236,8 +237,6 @@ def get_wf_chg_defects(
                 )
         else:
             copy_out = False
-
-        incar_settings.update(user_incar_settings)
 
         diel_fw = DFPTFW(
             structure=prim_structure,
