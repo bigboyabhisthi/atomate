@@ -197,7 +197,7 @@ class DefectSetupFiretask(FiretaskBase):
 
         bulk_incar_settings = {"EDIFF":.0001, "EDIFFG": 0.001, "ISMEAR":0, "SIGMA":0.05, "NSW": 0, "ISIF": 2,
                                "ISPIN":2,  "ISYM":2, "LVHAR":True, "LVTOT":True, "LWAVE": True}
-        bulk_incar_settings.update( user_incar_settings)
+        bulk_incar_settings.update(user_incar_settings)
 
         if job_type == 'metagga_opt_run':
             bulk_incar_settings['ALGO'] = "All"

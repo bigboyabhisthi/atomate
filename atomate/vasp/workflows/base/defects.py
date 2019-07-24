@@ -223,7 +223,7 @@ def get_wf_chg_defects(
         fws.append(hse_fw)
 
     if diel_flag:  # note dielectric DFPT run is only done with GGA
-        incar_settings = {}
+        incar_settings = {"LDAUU":{"Mn":3.9}}
         if parents:
             copy_out = True
             # need to revert incar settings which were set for scan and hybrid relaxation schemes
@@ -233,7 +233,7 @@ def get_wf_chg_defects(
                 )
             elif job_type == "metagga_opt_run":
                 incar_settings.update(
-                    {"ADDGRID": False, "ISTART": 0, "LASPH": False, "METAGGA": None}
+                    {"ADDGRID": True, "ISTART": 0, "LREAL": False, "LASPH": False, "LDAU":True, "METAGGA": None}
                 )
         else:
             copy_out = False
@@ -261,7 +261,7 @@ def get_wf_chg_defects(
             conventional=conventional,
             vasp_cmd=vasp_cmd,
             db_file=db_file,
-            user_incar_settings=incar_settings,
+            user_incar_settings=user_incar_settings,
             user_kpoints_settings=user_kpoints_settings,
             job_type=job_type,
             vacancies=vacancies,
