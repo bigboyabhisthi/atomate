@@ -381,10 +381,10 @@ def wf_gibbs_free_energy(structure, c=None):
     anharmonic_contribution = c.get("ANHARMONIC_CONTRIBUTION", False)
     metadata = c.get("METADATA", None)
 
-    # 21 deformed structures: from -10% to +10%
-    defos = [(np.identity(3) * (1 + x)).tolist() for x in np.linspace(-0.1, 0.1, 21)]
+    # 11 deformed structures: from -4% to +4%
+    defos = [(np.identity(3) * (1 + x)).tolist() for x in np.linspace(-0.04, 0.04, 11)]
     deformations = c.get("DEFORMATIONS", defos)
-    user_kpoints_settings = {"grid_density": 7000}
+    user_kpoints_settings = {"grid_density": 5000}
 
     tag = "gibbs group: >>{}<<".format(str(uuid4()))
 
@@ -392,30 +392,38 @@ def wf_gibbs_free_energy(structure, c=None):
     vis_relax = MPRelaxSet(structure, force_gamma=True)
     v = vis_relax.as_dict()
     v.update({"user_kpoints_settings": user_kpoints_settings})
+    v.update({"user_incar_settings": {"GGA":"PS", "EDIFFG":-1.0e-08}})
     vis_relax = vis_relax.__class__.from_dict(v)
 
     # optimization only workflow
     wf = get_wf(structure, "optimize_only.yaml",
                 params=[{"vasp_cmd": vasp_cmd,  "db_file": db_file,
-                         "name": "{} structure optimization".format(tag)}],
+                         "name": "{} structure optimization".format(tag), 'max_force_threshold': 0, "ediffg":-1.0e-08}],
                 vis=vis_relax)
 
     # static input set for the transmute firework
     uis_static = {
-        "ADDGRID":True,
-        "ISIF": 2,
+        "ADDGRID": True,
+        "IBRION": 8,
         "ISTART": 1,
-        "ENCUT": 720,
-        "EDIFF": 1e-5,
-        "KPAR": 4,
+        "ENCUT": 520,
+        "EDIFF": 1e-8,
+        "IALGO": 38,
+        "GGA": "PS",
+        "ISMEAR": 0,
+        "SIGMA": 0.1,
+        "LEPSILON": True,
+        "NSW": 1,
         "LAECHG": False,
+        "LCHARG": False,
+        "LWAVE": False,
         "LREAL": False,
-        "NSW": 1
+        "PREC":"Accurate"	
     }
 
     lepsilon = False
     if qha_type not in ["debye_model"]:
-        lepsilon = False # changed!
+        lepsilon = True # changed!
         try:
             from phonopy import Phonopy
         except ImportError:
@@ -436,9 +444,8 @@ def wf_gibbs_free_energy(structure, c=None):
     # chaining
     wf.append_wf(wf_gibbs, wf.leaf_fw_ids)
 
-    wf = add_modify_incar(wf, modify_incar_params={"incar_update": {"ENCUT": 720,
-                                                                    "EDIFF": 1e-6
-                                                                    }})
+    #wf = add_modify_incar(wf, modify_incar_params={"incar_update": {"ENCUT": 700, "EDIFF": 1E-6,
+    #                                                                }})
 
     wf = add_common_powerups(wf, c)
 
@@ -744,9 +751,9 @@ def wf_synthesis(structure, c=None):
     # chaining
     wf.append_wf(wf_gibbs, wf.leaf_fw_ids)
 
-    wf = add_modify_incar(wf, modify_incar_params={"incar_update": {"ENCUT": 720,
-                                                                    "EDIFF": 1e-6
-                                                                    }})
+#    wf = add_modify_incar(wf, modify_incar_params={"incar_update": {"ENCUT": 720,
+#                                                                   "EDIFF": 1e-6
+                                                                   # }})
 
     wf = add_common_powerups(wf, c)
 

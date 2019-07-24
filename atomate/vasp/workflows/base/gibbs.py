@@ -68,7 +68,7 @@ def get_wf_gibbs_free_energy(structure, deformations, vasp_input_set=None, vasp_
     if vis_static is None:
         lepsilon = False
         if qha_type not in ["debye_model"]:
-            lepsilon = False # CHANGED
+            lepsilon = True # CHANGED
             try:
                 from phonopy import Phonopy
             except ImportError:
@@ -87,7 +87,7 @@ def get_wf_gibbs_free_energy(structure, deformations, vasp_input_set=None, vasp_
                                              pressure=pressure, poisson=poisson, metadata=metadata,
                                              anharmonic_contribution=anharmonic_contribution,),
                            name="Gibbs Free Energy")
-
+    fw_analysis.spec["_allow_fizzled_parents"] = True
     wf_gibbs.append_wf(Workflow.from_Firework(fw_analysis), wf_gibbs.leaf_fw_ids)
 
     wf_gibbs.name = "{}:{}".format(structure.composition.reduced_formula, "gibbs free energy")
