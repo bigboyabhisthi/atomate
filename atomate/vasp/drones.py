@@ -106,6 +106,10 @@ class VaspDrone(AbstractDrone):
             parse_bader (bool): Run and parse Bader charge data. Defaults to True if Bader is present
             parse_chgcar (bool): Run and parse CHGCAR file
             parse_aeccar (bool): Run and parse AECCAR0 and AECCAR2 files
+            defect_wf_parsing (Site): A Site object representing the position of a point defect site.
+                If provided, the drone stores additional
+                useful information for consideration of defect localization
+                Defaults to None (no defect related parsing occurs)
         """
         self.parse_dos = parse_dos
         self.additional_fields = additional_fields or {}
@@ -124,10 +128,8 @@ class VaspDrone(AbstractDrone):
         Parses vasp runs(vasprun.xml file) and insert the result into the db.
         Get the entire task doc from the vasprum.xml and the OUTCAR files in the path.
         Also adds some post-processed info.
-
         Args:
             path (str): Path to the directory containing vasprun.xml and OUTCAR files
-
         Returns:
             (dict): a task dictionary
         """
@@ -150,11 +152,9 @@ class VaspDrone(AbstractDrone):
         Only 2 schemes of the file filtering is enabled: searching for run types
         in the list of files and in the filenames. Modify this method if more
         sophisticated filtering scheme is needed.
-
         Args:
             path (string): path to the folder
             file_pattern (string): files to be searched for
-
         Returns:
             OrderedDict of the names of the files to be processed further.
             The key is set from list of run types: self.runs
@@ -209,6 +209,18 @@ class VaspDrone(AbstractDrone):
             except:
                 logger.error("Bad run stats for {}.".format(fullpath))
             d["run_stats"] = run_stats
+
+            # store defect localization/band filling information
+            if self.defect_wf_parsing:
+                for i, d_calc in enumerate(d["calcs_reversed"]):
+                    if d_calc.get("output"):
+                        filename = list(vasprun_files.values())[i]
+                        vasprun_file = os.path.join(dir_name, filename)
+                        vrun = Vasprun(vasprun_file)
+                        eigenvalues = vrun.eigenvalues.copy()
+                        kpoint_weights = vrun.actual_kpoints_weights
+                        vr_eigenvalue_dict = {'eigenvalues': eigenvalues, 'kpoint_weights': kpoint_weights}
+                        d_calc["output"].update({"vr_eigenvalue_dict": vr_eigenvalue_dict})
 
             # reverse the calculations data order so newest calc is first
             d["calcs_reversed"].reverse()
@@ -317,7 +329,6 @@ class VaspDrone(AbstractDrone):
     def process_vasprun(self, dir_name, taskname, filename):
         """
         Adapted from matgendb.creator
-
         Process a vasprun.xml file.
         """
         vasprun_file = os.path.join(dir_name, filename)
@@ -484,7 +495,6 @@ class VaspDrone(AbstractDrone):
         """
         It is useful to store what raw data has been calculated
         and exists for easier querying of the taskdoc.
-
         :param dir_name: directory to search
         :param taskname: taskname, e.g. "relax1"
         :return: dict of files present
@@ -502,7 +512,6 @@ class VaspDrone(AbstractDrone):
     def set_analysis(d, max_force_threshold=0.5, volume_change_threshold=0.2):
         """
         Adapted from matgendb.creator
-
         set the 'analysis' key
         """
         initial_vol = d["input"]["structure"]["lattice"]["volume"]
@@ -546,7 +555,6 @@ class VaspDrone(AbstractDrone):
         Post-processing for various files other than the vasprun.xml and OUTCAR.
         Looks for files: transformations.json and custodian.json. Modify this if other
         output files need to be processed.
-
         Args:
             dir_name:
                 The dir_name.
@@ -640,7 +648,6 @@ class VaspDrone(AbstractDrone):
     def get_valid_paths(self, path):
         """
         There are some restrictions on the valid directory structures:
-
         1. There can be only one vasp run in each directory. Nested directories
            are fine.
         2. Directories designated "relax1"..."relax9" are considered to be
