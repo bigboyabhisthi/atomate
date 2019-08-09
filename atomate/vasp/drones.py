@@ -83,7 +83,7 @@ class VaspDrone(AbstractDrone):
 
     def __init__(self, runs=None, parse_dos="auto", bandstructure_mode="auto",
                  parse_locpot=True, additional_fields=None, use_full_uri=True,
-                 parse_bader=bader_exe_exists, parse_chgcar=False, parse_aeccar=False):
+                 parse_bader=bader_exe_exists, parse_chgcar=False, parse_aeccar=False, defect_wf_parsing=False):
         """
         Initialize a Vasp drone to parse vasp outputs
         Args:
@@ -121,6 +121,7 @@ class VaspDrone(AbstractDrone):
         self.parse_bader = parse_bader
         self.parse_chgcar = parse_chgcar
         self.parse_aeccar = parse_aeccar
+        self.defect_wf_parsing = defect_wf_parsing
 
     def assimilate(self, path):
         """
