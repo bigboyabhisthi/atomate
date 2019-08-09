@@ -76,7 +76,7 @@ class VaspToDb(FiretaskBase):
     """
     optional_params = ["calc_dir", "calc_loc", "parse_dos", "bandstructure_mode",
                        "additional_fields", "db_file", "fw_spec_field", "defuse_unsuccessful",
-                       "task_fields_to_push", "parse_chgcar", "parse_aeccar"]
+                       "task_fields_to_push", "parse_chgcar", "parse_aeccar, defect_wf_parsing"]
 
     def run_task(self, fw_spec):
         # get the directory that contains the VASP dir to parse
@@ -93,7 +93,8 @@ class VaspToDb(FiretaskBase):
                           parse_dos=self.get("parse_dos", False),
                           bandstructure_mode=self.get("bandstructure_mode", False),
                           parse_chgcar=self.get("parse_chgcar", False),
-                          parse_aeccar=self.get("parse_aeccar", False))
+                          parse_aeccar=self.get("parse_aeccar", False),
+                          defect_wf_parsing=self.get("defect_wf_parsing", False))
 
         # assimilate (i.e., parse)
         task_doc = drone.assimilate(calc_dir)
