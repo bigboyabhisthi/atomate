@@ -1,6 +1,5 @@
 # coding: utf-8
 
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 import json
 import os
@@ -267,7 +266,7 @@ class ElasticTensorToDb(FiretaskBase):
     """
     Analyzes the stress/strain data of an elastic workflow to produce
     an elastic tensor and various other quantities.
-    
+
     Required params:
         structure (Structure): structure to use for symmetrization,
             input structure.  If an optimization was used, will
@@ -389,7 +388,7 @@ class ElasticTensorToDb(FiretaskBase):
             db.collection = db.db["elasticity"]
             db.collection.insert_one(d)
             logger.info("Elastic analysis complete.")
-        
+
         return FWAction()
 
 
