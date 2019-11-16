@@ -172,12 +172,12 @@ class DefectSetupFiretask(FiretaskBase):
     """
     def run_task(self, fw_spec):
         if os.path.exists("POSCAR"):
-            structure =  Poscar.from_file("POSCAR").structure
+            structure = Poscar.from_file("POSCAR").structure
         else:
             structure = self.get("structure")
 
-        if self.get("conventional", True):
-            structure = SpacegroupAnalyzer(structure).get_conventional_standard_structure()
+        #if self.get("conventional", True):
+            #structure = SpacegroupAnalyzer(structure).get_conventional_standard_structure()
 
         fws, parents = [], []
 
@@ -202,7 +202,7 @@ class DefectSetupFiretask(FiretaskBase):
         if job_type == 'metagga_opt_run':
             bulk_incar_settings['ALGO'] = "All"
             kpoints_settings = user_kpoints_settings if user_kpoints_settings else {"reciprocal_density": 100}
-            vis = MVLScanRelaxSet( bulk_supercell,
+            vis = MVLScanRelaxSet(bulk_supercell,
                                    use_hubbard=True,
                                    user_incar_settings=bulk_incar_settings,
                                    user_kpoints_settings=kpoints_settings)
@@ -378,11 +378,13 @@ class DefectSetupFiretask(FiretaskBase):
         for defcalc in def_structs:
             #get defect supercell and defect site for parsing purposes
             defect = defcalc['defect'].copy()
-            defect_sc = defect.generate_defect_structure( supercell = supercell_size)
+            defect_sc = defect.generate_defect_structure(supercell = supercell_size)
+            defect.site.properties = {prop: [val] for prop, val in defect.site.properties.items()}
             struct_for_defect_site = Structure(defect.bulk_structure.copy().lattice,
                                                [defect.site.specie],
                                                [defect.site.frac_coords],
-                                               to_unit_cell=True, coords_are_cartesian=False)
+                                               to_unit_cell=True, coords_are_cartesian=False,
+                                               site_properties=defect.site.properties)
             struct_for_defect_site.make_supercell(supercell_size)
             defect_site = struct_for_defect_site[0]
 

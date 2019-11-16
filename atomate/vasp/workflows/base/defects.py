@@ -141,7 +141,7 @@ def get_wf_chg_defects(
     fws, parents = [], []
 
     # force optimization and dielectric calculations with primitive structure for expediency
-    prim_structure = SpacegroupAnalyzer(structure).find_primitive()
+    prim_structure = structure.get_primitive_structure(use_site_props=True)
 
     if rerelax_flag:
         incar_settings = {
