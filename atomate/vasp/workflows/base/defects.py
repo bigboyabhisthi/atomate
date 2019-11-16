@@ -118,12 +118,12 @@ def get_wf_chg_defects(structure, name="chg_defect_wf", user_incar_settings={},
     fws, parents = [], []
 
     #force optimization and dielectric calculations with primitive structure for expediency
-    prim_structure = SpacegroupAnalyzer(structure).find_primitive()
+    prim_structure = structure.get_primitive_structure(use_site_props=True)
 
     if rerelax_flag:
         incar_settings = {"ISIF": 3, "ISPIN":2, "ISYM":2, "LAECHG":False, 'LVHAR': False}
         kpt_density = 100
-        vis = MPRelaxSet( prim_structure,
+        vis = MPRelaxSet(prim_structure,
                           user_incar_settings=incar_settings,
                           user_kpoints_settings={"reciprocal_density": kpt_density})
 
@@ -175,7 +175,7 @@ def get_wf_chg_defects(structure, name="chg_defect_wf", user_incar_settings={},
     return final_wf
 
 
-def run_defect_resubmissions( dpd, name="chg_defect_wf", consider_charges=True,
+def run_defect_resubmissions(dpd, name="chg_defect_wf", consider_charges=True,
                               user_incar_settings={},
                               vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<",
                               n_max=400, hybrid_run_for_gap_corr=False,

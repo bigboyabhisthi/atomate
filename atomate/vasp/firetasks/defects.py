@@ -149,12 +149,9 @@ class DefectSetupFiretask(FiretaskBase):
     """
     def run_task(self, fw_spec):
         if os.path.exists("POSCAR"):
-            structure =  Poscar.from_file("POSCAR").structure
+            structure = Poscar.from_file("POSCAR").structure
         else:
             structure = self.get("structure")
-
-        if self.get("conventional", True):
-            structure = SpacegroupAnalyzer(structure).get_conventional_standard_structure()
 
         fws, parents = [], []
 
@@ -171,11 +168,11 @@ class DefectSetupFiretask(FiretaskBase):
 
         bulk_incar_settings = {"EDIFF":.0001, "EDIFFG": 0.001, "ISMEAR":0, "SIGMA":0.05, "NSW": 0, "ISIF": 2,
                                "ISPIN":2,  "ISYM":2, "LVHAR":True, "LVTOT":True, "LWAVE": True}
-        bulk_incar_settings.update( user_incar_settings)
+        bulk_incar_settings.update(user_incar_settings)
 
         reciprocal_density = 100
         kpoints_settings = user_kpoints_settings if user_kpoints_settings else {"reciprocal_density": reciprocal_density}
-        vis = MPRelaxSet( bulk_supercell,
+        vis = MPRelaxSet(bulk_supercell,
                           user_incar_settings=bulk_incar_settings,
                           user_kpoints_settings=kpoints_settings)
 
@@ -326,7 +323,7 @@ class DefectSetupFiretask(FiretaskBase):
                         charges = get_charges_from_inter( inter)
                         def_structs.append({'charges': charges, 'defect': inter.copy()})
                 else:
-                    charges = get_charges_from_inter( elt_val)
+                    charges = get_charges_from_inter(elt_val)
                     def_structs.append({'charges': charges, 'defect': elt_val.copy()})
 
 
@@ -389,7 +386,7 @@ def get_fw_from_defect( defect, supercell_size, user_kpoints_settings = {},
     defect_site = struct_for_defect_site[0]
 
     bulk_sc = defect.bulk_structure.copy()
-    bulk_sc.make_supercell( supercell_size)
+    bulk_sc.make_supercell(supercell_size)
     num_atoms = len(bulk_sc)
 
     chgdef_trans = ["DefectTransformation"]
