@@ -22,7 +22,7 @@ import numpy as np
 
 from monty.json import jsanitize
 
-from pymatgen.io.vasp import Vasprun, Locpot, Poscar
+from pymatgen.io.vasp import Vasprun, Locpot, Poscar, Incar
 from pymatgen import MPRester
 from pymatgen.core import Structure
 from pymatgen.io.vasp.sets import MPRelaxSet, MVLScanRelaxSet
@@ -176,6 +176,10 @@ class DefectSetupFiretask(FiretaskBase):
         else:
             structure = self.get("structure")
 
+        # ensuring same magnetic ordering
+        magmoms = Incar.from_file("INCAR")["MAGMOM"]
+        structure.add_site_property("magmom", magmoms)
+
         #if self.get("conventional", True):
             #structure = SpacegroupAnalyzer(structure).get_conventional_standard_structure()
 
@@ -209,13 +213,13 @@ class DefectSetupFiretask(FiretaskBase):
         else:
             reciprocal_density = 50 if job_type == 'hse' else 100
             kpoints_settings = user_kpoints_settings if user_kpoints_settings else {"reciprocal_density": reciprocal_density}
-            vis = MPRelaxSet( bulk_supercell,
+            vis = MPRelaxSet(bulk_supercell,
                               user_incar_settings=bulk_incar_settings,
                               user_kpoints_settings=kpoints_settings)
 
-        supercell_size = sc_scale * np.identity(3)
+        supercell_size = (sc_scale * np.identity(3)).tolist()
         bulk_tag = "{}:{}_bulk_supercell_{}atoms".format(structure.composition.reduced_formula, job_type, num_atoms)
-        stat_fw = TransmuterFW(name = bulk_tag, structure=structure,
+        stat_fw = TransmuterFW(name=bulk_tag, structure=structure,
                                transformations=['SupercellTransformation'],
                                transformation_params=[{"scaling_matrix": supercell_size}],
                                vasp_input_set=vis, copy_vasp_outputs=False, #structure already copied over...
