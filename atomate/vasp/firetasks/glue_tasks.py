@@ -256,24 +256,15 @@ class GetInterpolatedPOSCAR(FiretaskBase):
         if not os.path.exists(os.path.join(os.getcwd(), interpolate_folder)):
             os.makedirs(os.path.join(os.getcwd(), interpolate_folder))
 
-        #decompress CONTCAR at start and end paths if applicable #TODO: do this more intelligently?
-        from monty.shutil import decompress_file
-        for start_end in [self["start"], self["end"]]:
-            calc_loc = get_calc_loc( start_end, fw_spec["calc_locs"])
-            contcar_path = os.path.join( calc_loc["path"], 'CONTCAR.gz')
-            if os.path.exists( contcar_path):
-                decompress_file( contcar_path)
-
-        # use method of GrabFilesFromCalcLoc to grab files from previous locations.
-        CopyFilesFromCalcLoc(calc_dir=None, calc_loc=self["start"],
+        # use CopyFilesFromCalcLoc to get files from previous locations.
+        CopyFilesFromCalcLoc(calc_loc=self["start"],
                              filenames=["CONTCAR"],
                              name_prepend=interpolate_folder + os.sep,
                              name_append="_0").run_task(fw_spec=fw_spec)
-        CopyFilesFromCalcLoc(calc_dir=None, calc_loc=self["end"],
+        CopyFilesFromCalcLoc(calc_loc=self["end"],
                              filenames=["CONTCAR"],
                              name_prepend=interpolate_folder + os.sep,
                              name_append="_1").run_task(fw_spec=fw_spec)
-
 
         # assuming first calc_dir is polar structure for ferroelectric search
         s1 = Structure.from_file(os.path.join(interpolate_folder, "CONTCAR_0"))
