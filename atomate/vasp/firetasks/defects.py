@@ -176,9 +176,13 @@ class DefectSetupFiretask(FiretaskBase):
         else:
             structure = self.get("structure")
 
-        # ensuring same magnetic ordering
-        magmoms = Incar.from_file("INCAR")["MAGMOM"]
-        structure.add_site_property("magmom", magmoms)
+        if 'magmom' not in structure.site_properties:
+            # ensuring same magnetic ordering
+            if os.path.exists("INCAR"):
+                magmoms = Incar.from_file("INCAR")["MAGMOM"]
+            else:
+                magmoms = self.get("magmoms")
+            structure.add_site_property("magmom", magmoms)
 
         #if self.get("conventional", True):
             #structure = SpacegroupAnalyzer(structure).get_conventional_standard_structure()
