@@ -392,7 +392,7 @@ def wf_gibbs_free_energy(structure, c=None):
     vis_relax = MPRelaxSet(structure, force_gamma=True)
     v = vis_relax.as_dict()
     v.update({"user_kpoints_settings": user_kpoints_settings})
-    v.update({"user_incar_settings": {"GGA":"PS", "EDIFFG":-1.0e-08}})
+    v.update({"user_incar_settings": {"EDIFFG": -1.0e-08}})
     vis_relax = vis_relax.__class__.from_dict(v)
 
     # optimization only workflow
@@ -409,7 +409,6 @@ def wf_gibbs_free_energy(structure, c=None):
         "ENCUT": 520,
         "EDIFF": 1e-8,
         "IALGO": 38,
-        "GGA": "PS",
         "ISMEAR": 0,
         "SIGMA": 0.1,
         "LEPSILON": True,
@@ -418,7 +417,7 @@ def wf_gibbs_free_energy(structure, c=None):
         "LCHARG": False,
         "LWAVE": False,
         "LREAL": False,
-        "PREC":"Accurate"	
+        "PREC": "Accurate"
     }
 
     lepsilon = False
