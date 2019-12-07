@@ -237,7 +237,7 @@ class DefectSetupFiretask(FiretaskBase):
         vacancies = self.get("vacancies", list())
         substitutions = self.get("substitutions", dict())
         interstitials = self.get("interstitials", list())
-        initial_charges  = self.get("initial_charges", dict())
+        initial_charges = self.get("initial_charges", dict())
 
         def_structs = []
         #a list with following dict structure for each entry:
@@ -343,10 +343,8 @@ class DefectSetupFiretask(FiretaskBase):
 
 
         if interstitials:
-            #default: do not include interstitial defects
-            #TODO: for time savings, can reuse result of InFit intersitital finding approach since it is time consuming
 
-            def get_charges_from_inter( inter_elt):
+            def get_charges_from_inter(inter_elt):
                 inter_charges = []
                 if initial_charges:
                     if 'interstitials' in initial_charges.keys():
@@ -371,15 +369,15 @@ class DefectSetupFiretask(FiretaskBase):
                                          'Please choose either Voronoi or InFit.')
 
                     for inter_ind, inter in enumerate(IG):
-                        charges = get_charges_from_inter( inter)
+                        charges = get_charges_from_inter(elt_type)
                         def_structs.append({'charges': charges, 'defect': inter.copy()})
                 else:
-                    charges = get_charges_from_inter( elt_val)
+                    charges = get_charges_from_inter(elt_val)
                     def_structs.append({'charges': charges, 'defect': elt_val.copy()})
 
-        stdrd_defect_incar_settings = {"EDIFF": 0.0001, "EDIFFG": 0.001, "IBRION":2, "ISMEAR":0, "SIGMA":0.05,
-                                       "ISPIN":2,  "ISYM":2, "LVHAR":True, "LVTOT":True, "NSW": 100,
-                                       "NELM": 60, "ISIF": 2, "LAECHG":False, "LWAVE": True}
+        stdrd_defect_incar_settings = {"EDIFF": 0.0001, "EDIFFG": 0.001, "IBRION": 2, "ISMEAR": 0, "SIGMA": 0.05,
+                                       "ISPIN": 2,  "ISYM": 2, "LVHAR": True, "LVTOT":True, "NSW": 100,
+                                       "NELM": 60, "ISIF": 2, "LAECHG": False, "LWAVE": True}
         stdrd_defect_incar_settings.update( user_incar_settings)
 
         # now that def_structs is assembled, set up Transformation FW for all defect + charge combinations
@@ -412,7 +410,7 @@ class DefectSetupFiretask(FiretaskBase):
                 else:
                     reciprocal_density = 50 if job_type == 'hse' else 100
                     kpoints_settings = user_kpoints_settings if user_kpoints_settings else {"reciprocal_density": reciprocal_density}
-                    defect_input_set = MPRelaxSet( chgdstruct,
+                    defect_input_set = MPRelaxSet(chgdstruct,
                                                    user_incar_settings=stdrd_defect_incar_settings.copy(),
                                                    user_kpoints_settings=kpoints_settings,
                                                    use_structure_charge=True)
@@ -428,7 +426,7 @@ class DefectSetupFiretask(FiretaskBase):
 
                 def_tag = "{}:{}_{}_{}_{}atoms".format(structure.composition.reduced_formula, job_type,
                                                       defect.name, charge, num_atoms)
-                fw = TransmuterFW( name = def_tag, structure=structure,
+                fw = TransmuterFW(name = def_tag, structure=structure,
                                    transformations=chgdef_trans,
                                    transformation_params=chgdef_trans_params,
                                    vasp_input_set=defect_input_set,

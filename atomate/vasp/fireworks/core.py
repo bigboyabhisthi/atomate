@@ -627,7 +627,8 @@ class TransmuterFW(Firework):
                               "task_label": name,
                               "transmuter": {"transformations": transformations,
                                              "transformation_params": transformation_params}
-                          }))
+                          },
+                          defect_wf_parsing=defect_wf_parsing))
 
         super(TransmuterFW, self).__init__(t, parents=parents,
                                            name=fw_name, **kwargs)
