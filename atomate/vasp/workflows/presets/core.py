@@ -392,14 +392,14 @@ def wf_gibbs_free_energy(structure, c=None):
     vis_relax = MPRelaxSet(structure, force_gamma=True)
     v = vis_relax.as_dict()
     v.update({"user_kpoints_settings": user_kpoints_settings})
-    v.update({"user_incar_settings": {"EDIFFG": -1.0e-04, "IBRION": 1}})
+    v.update({"user_incar_settings": {"EDIFFG": -1.0e-03, "IBRION": 1}})
     vis_relax = vis_relax.__class__.from_dict(v)
 
     # optimization only workflow
     wf = get_wf(structure, "optimize_only.yaml",
                 params=[{"vasp_cmd": vasp_cmd,  "db_file": db_file,
                          "name": "{} structure optimization".format(tag),
-                         "max_force_threshold": None, "ediffg": -1.0e-04}],
+                         "max_force_threshold": None, "ediffg": -1.0e-03}],
                 vis=vis_relax)
 
     # static input set for the transmute firework
