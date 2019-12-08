@@ -392,7 +392,7 @@ def wf_gibbs_free_energy(structure, c=None):
     vis_relax = MPRelaxSet(structure, force_gamma=True)
     v = vis_relax.as_dict()
     v.update({"user_kpoints_settings": user_kpoints_settings})
-    v.update({"user_incar_settings": {"EDIFFG": -1.0e-03, "IBRION": 1}})
+    v.update({"user_incar_settings": {"EDIFFG": -1.0e-03, "EDIFF": 1.0e-6, "POTIM": 0.2, "IBRION": 1}})
     vis_relax = vis_relax.__class__.from_dict(v)
 
     # optimization only workflow
