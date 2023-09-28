@@ -11,5 +11,5 @@ pandas==0.25.3
 pymatgen==2020.1.10
 custodian==2019.9.23
 networkx==2.4
-pydash==4.7.6
+pydash==6.0.0
 pyyaml==5.3
